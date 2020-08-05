@@ -1,3 +1,4 @@
+import { User } from './../auth/user.entity';
 import { stat } from 'fs';
 import { TaskRepository } from './task.repository';
 import { GetTasksFilterDTO } from './dto/get-tasks-filter.dto';
@@ -20,16 +21,22 @@ export class TasksService
     }
 
 
-    async getTasks(filterDTO: GetTasksFilterDTO): Promise<Task[]>
+    async getTasks(
+        filterDTO: GetTasksFilterDTO,
+        user: User,
+    ): Promise<Task[]>
     {
-        return this.taskRepository.getTasks(filterDTO);
+        return this.taskRepository.getTasks(filterDTO, user);
     }
 
 
 
-    async getTaskById(id: number): Promise<Task>
+    async getTaskById(
+        id: number,
+        user: User,
+    ): Promise<Task>
     {
-        const found = await this.taskRepository.findOne(id);
+        const found = await this.taskRepository.findOne({ where: { id, userId: user.id } });
 
         if (!found)
         {                               // back tick are important here
@@ -39,15 +46,21 @@ export class TasksService
     }
 
 
-    async createTask(createTaskDto: CreateTaskDto): Promise<Task>
+    async createTask(
+        createTaskDto: CreateTaskDto,
+        user: User,
+    ): Promise<Task>
     {
-        return this.taskRepository.createTask(createTaskDto);
+        return this.taskRepository.createTask(createTaskDto, user);
     }
 
 
-    async deleteTask(id: number): Promise<void>
+    async deleteTask(
+        id: number,
+         user: User,
+         ): Promise<void>
     {
-        const result = await this.taskRepository.delete(id);
+        const result = await this.taskRepository.delete({id, userId: user.id});
         if (result.affected === 0)
         {
             throw new NotFoundException(`Task with ID"${id}" not found`);
@@ -56,9 +69,13 @@ export class TasksService
     }
 
 
-    async updateTaskStatus(id: number, status: TaskStatus): Promise<Task>
+    async updateTaskStatus(
+        id: number,
+        status: TaskStatus,
+        user: User,
+    ): Promise<Task>
     {
-        const task = await this.getTaskById(id);
+        const task = await this.getTaskById(id, user);
         task.status = status;
         await task.save();
 
