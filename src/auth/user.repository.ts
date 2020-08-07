@@ -13,7 +13,7 @@ export class UserRepository extends Repository<User>{
 
 
 
-        const user = new User();
+        const user = this.create();
 
         user.username = username;
         user.salt = await bcrypt.genSalt();
